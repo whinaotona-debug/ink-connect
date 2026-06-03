@@ -5,27 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>インク・コネクト</title>
   <style>
-    body { font-family: sans-serif; text-align: center; background-color: #222; color: #fff; margin: 0; padding: 0; overflow: hidden; touch-action: none; }
-    h1 { font-size: 24px; margin-top: 20px; color: #00E5FF; text-shadow: 0 0 10px rgba(0,229,255,0.5); }
-    button { padding: 12px 20px; font-size: 16px; margin: 5px; cursor: pointer; border-radius: 8px; border: none; background-color: #00E5FF; color: #000; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-    button:active { background-color: #00B3CC; transform: translateY(2px); }
-    input { padding: 12px; font-size: 18px; width: 120px; text-align: center; border-radius: 8px; border: none; margin-bottom: 10px; }
+    body { font-family: 'Helvetica Rounded', 'Arial Rounded MT Bold', sans-serif; text-align: center; background-color: #E0F7FA; color: #333; margin: 0; padding: 0; overflow: hidden; touch-action: none; }
+    h1 { font-size: 28px; margin-top: 20px; color: #009688; text-shadow: 1px 1px 2px #fff; }
+    button { padding: 12px 20px; font-size: 16px; margin: 5px; cursor: pointer; border-radius: 12px; border: none; background-color: #4CAF50; color: white; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+    button:active { background-color: #388E3C; transform: translateY(2px); box-shadow: 0 2px 3px rgba(0,0,0,0.2); }
+    input { padding: 12px; font-size: 18px; width: 140px; text-align: center; border-radius: 8px; border: 2px solid #009688; margin-bottom: 10px; outline: none; }
     
     #screen-manager { width: 100vw; height: 100vh; position: relative; }
-    .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #222; }
+    .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E0F7FA; }
     
-    #game-container { position: relative; width: 100vw; height: 100vh; background-color: #111; display: flex; flex-direction: column; align-items: center; }
-    #game-canvas { background-color: #333; box-shadow: 0 0 20px rgba(0,0,0,0.8); max-width: 100%; max-height: 80vh; object-fit: contain; }
+    #game-container { position: relative; width: 100vw; height: 100vh; background-color: #87CEEB; display: flex; flex-direction: column; align-items: center; }
+    #game-canvas { background-color: #87CEEB; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 100%; max-height: 80vh; object-fit: contain; }
 
-    #hud { position: absolute; bottom: 0; width: 100%; height: 20vh; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; background: rgba(0,0,0,0.5); }
-    #joystick-zone { width: 120px; height: 120px; position: relative; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); }
-    #joystick-knob { width: 50px; height: 50px; position: absolute; top: 35px; left: 35px; border-radius: 50%; background: rgba(0, 229, 255, 0.7); pointer-events: none; }
+    #hud { position: absolute; bottom: 0; width: 100%; height: 20vh; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; background: rgba(255,255,255,0.7); border-top: 3px solid #ccc; }
     
-    #btn-toggle-mode { background-color: #FF0055; color: white; height: 60px; width: 140px; border-radius: 30px; font-size: 14px; }
-    #mode-indicator { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 15px; font-weight: bold; color: #00E5FF; pointer-events: none;}
+    #joystick-zone { width: 120px; height: 120px; position: relative; border-radius: 50%; background: rgba(0,0,0,0.1); border: 2px solid rgba(0,0,0,0.2); }
+    #joystick-knob { width: 50px; height: 50px; position: absolute; top: 35px; left: 35px; border-radius: 50%; background: rgba(33, 150, 243, 0.9); box-shadow: inset -3px -3px 5px rgba(0,0,0,0.3); pointer-events: none; }
     
-    /* ステージクリアなどのメッセージ表示用 */
-    #message-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; color: #FFD700; text-shadow: 0 0 20px #FF8C00; display: none; pointer-events: none; z-index: 10; }
+    #btn-toggle-mode { background-color: #FF5722; height: 60px; width: 140px; border-radius: 30px; font-size: 14px; line-height: 1.2; }
+    #mode-indicator { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #FFF; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: #2196F3; border: 2px solid #2196F3; pointer-events: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+    
+    #message-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; color: #FFEB3B; text-shadow: 2px 2px 0px #FF9800, -2px -2px 0px #FF9800; display: none; pointer-events: none; z-index: 10; }
   </style>
 </head>
 <body>
@@ -33,24 +33,25 @@
   <div id="screen-manager">
     <div id="login-screen" class="screen">
       <h1>インク・コネクト</h1>
+      <p style="color:#666; font-weight:bold;">描いた線が落ちる！協力パズル</p>
       <button id="btn-create">ルーム作成</button>
-      <br><br>
+      <br>
       <input type="text" id="input-room" placeholder="コード" maxlength="4">
       <button id="btn-join">ルーム入室</button>
     </div>
 
     <div id="waiting-screen" class="screen" style="display:none;">
-      <h1>ルームコード: <span id="display-room-code" style="color:#00E5FF; font-size: 32px;"></span></h1>
-      <p>パートナーを待っています...</p>
+      <h2>ルームコード: <span id="display-room-code" style="color:#FF5722; font-size: 40px;"></span></h2>
+      <p style="font-weight:bold;">パートナーを待っています...</p>
     </div>
 
-    <div id="game-screen" class="screen" style="display:none; justify-content: flex-start;">
-      <div id="mode-indicator">SELF MODE (自分を操作)</div>
+    <div id="game-screen" class="screen" style="display:none; justify-content: flex-start; background: #87CEEB;">
+      <div id="mode-indicator">👤 自分を操作中</div>
       <div id="message-overlay">STAGE CLEAR!</div>
       <canvas id="game-canvas" width="800" height="450"></canvas>
       <div id="hud">
         <div id="joystick-zone"><div id="joystick-knob"></div></div>
-        <button id="btn-toggle-mode">VIEW PARTNER<br>(支援モードへ)</button>
+        <button id="btn-toggle-mode">👀 相手を見る<br>(支援モード)</button>
       </div>
     </div>
   </div>
@@ -59,9 +60,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // ==========================================
-    // あなたのFirebaseプロジェクト設定
-    // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyAOKt8XnaAiyeI8BFeYfWSEkZ2Z5PEcYrw",
       authDomain: "connect-25c1a.firebaseapp.com",
@@ -76,84 +74,51 @@
     const db = getDatabase(app);
 
     // ==========================================
-    // ゲーム共通変数
+    // 基本設定
     // ==========================================
     const myUid = Math.random().toString(36).substring(2, 10);
-    let roomId = null;
-    let myIndex = -1; // 0=P1, 1=P2
-    let partnerIndex = -1;
+    let roomId = null; let myIndex = -1; let partnerIndex = -1;
     let isPartnerMode = false;
+    let myBtnPressed = false; let partnerBtnPressed = false;
 
-    const LOGICAL_W = 800;
-    const LOGICAL_H = 450;
+    const LOGICAL_W = 800; const LOGICAL_H = 450;
     const canvas = document.getElementById("game-canvas");
     const ctx = canvas.getContext("2d");
 
     // ==========================================
-    // ステージデータ (サンプル3種類。ここを増やすとステージが増えます)
+    // ステージデータ
     // ==========================================
     const STAGE_DATA = [
-      // ----- ステージ 1: 基本のジャンプ -----
-      {
-        p1: {
-          start: { x: 50, y: 350 },
-          goal: { x: 700, y: 150, w: 60, h: 60 },
-          blocks: [ {x:0, y:400, w:200, h:50}, {x:600, y:210, w:200, h:50} ]
-        },
-        p2: {
-          start: { x: 50, y: 350 },
-          goal: { x: 700, y: 350, w: 60, h: 60 },
-          blocks: [ {x:0, y:400, w:150, h:50}, {x:650, y:410, w:150, h:40} ]
-        }
-      },
-      // ----- ステージ 2: 谷越え（相手の線が必要） -----
-      {
-        p1: {
-          start: { x: 50, y: 100 },
-          goal: { x: 700, y: 100, w: 60, h: 60 },
-          blocks: [ {x:0, y:150, w:200, h:300}, {x:600, y:150, w:200, h:300} ] 
-        },
-        p2: {
-          start: { x: 50, y: 350 },
-          goal: { x: 700, y: 50, w: 60, h: 60 },
-          blocks: [ {x:0, y:400, w:200, h:50}, {x:350, y:250, w:100, h:20}, {x:600, y:110, w:200, h:50} ]
-        }
-      },
-      // ----- ステージ 3: 滑り台（斜めの線を使わせる） -----
-      {
-        p1: {
-          start: { x: 50, y: 50 },
-          goal: { x: 700, y: 350, w: 60, h: 60 },
-          blocks: [ {x:0, y:100, w:150, h:20}, {x:650, y:410, w:150, h:40} ]
-        },
-        p2: {
-          start: { x: 50, y: 350 },
-          goal: { x: 700, y: 50, w: 60, h: 60 },
-          blocks: [ {x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:40} ]
-        }
-      }
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:150, w:60, h:60}, blocks: [{x:0, y:400, w:200, h:50}, {x:600, y:210, w:200, h:50}], winds: [], buttons: [], doors: [] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:410, w:150, h:40}], winds: [], buttons: [], doors: [] } },
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:350, y:250, w:100, h:20}, {x:650, y:110, w:150, h:50}], winds: [], buttons: [], doors: [] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [], buttons: [], doors: [] } },
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:300, h:50}, {x:500, y:400, w:300, h:50}], winds: [], buttons: [{x: 200, y: 385, w: 40, h: 15, id: "btn1"}], doors: [] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:800, h:50}], winds: [], buttons: [], doors: [{x: 400, y: 200, w: 50, h: 200, id: "door1"}] } },
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [{x: 300, y: 150, w: 150, h: 300, dy: -1.2, dx: 0}], buttons: [], doors: [] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [{x: 300, y: 150, w: 150, h: 300, dy: -1.2, dx: 0}], buttons: [], doors: [] } },
+      { p1: { start: {x:50, y:50}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:100, w:150, h:20}, {x:650, y:410, w:150, h:40}], winds: [{x: 400, y: 200, w: 100, h: 250, dy: -0.8, dx: 0}], buttons: [], doors: [{x: 650, y: 250, w: 20, h: 160, id: "door2"}] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:40}], winds: [], buttons: [{x: 100, y: 385, w: 40, h: 15, id: "btn2"}], doors: [] } }
     ];
 
-    let currentStageIndex = 0;
-    let isTransitioning = false; // クリア演出中フラグ
-
-    let playersData = [
-      { x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: '#00E5FF' }, // P1
-      { x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: '#FF0055' }  // P2
-    ];
-    let lines = [[], []]; 
+    let currentStageIndex = 0; let isTransitioning = false;
+    const P1_COLOR = "#03A9F4"; const P2_COLOR = "#E91E63";
+    let playersData = [{ x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: P1_COLOR }, { x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: P2_COLOR }];
+    
+    // 【変更】ローカルでの物理演算用ストローク配列
+    // 構造: { id: 数値, points: [{x,y}...], offsetY: 0, vy: 0, isResting: false }
+    let physicsStrokes = [[], []]; 
     let joystickInput = { x: 0, jump: false };
 
     // ==========================================
-    // ルームと通信のロジック
+    // 通信処理
     // ==========================================
     document.getElementById("btn-create").onclick = async () => {
       roomId = Math.random().toString(36).substring(2, 6).toUpperCase(); 
       const roomRef = ref(db, 'ink_rooms/' + roomId);
       await set(roomRef, {
-        status: "waiting", 
-        players: [myUid],
-        state: { p0: { x: 50, y: 50 }, p1: { x: 50, y: 50 }, lines0: "[]", lines1: "[]", stageIndex: 0 }
+        status: "waiting", players: [myUid],
+        state: { p0: {x:50,y:50}, p1: {x:50,y:50}, strokes0: "[]", strokes1: "[]", stageIndex: 0, btn0: false, btn1: false }
       });
       joinRoom(roomId);
     };
@@ -168,21 +133,31 @@
       const snapshot = await get(roomRef);
       if (!snapshot.exists()) return alert("ルームが見つかりません。"); 
       
-      let data = snapshot.val();
-      let playersList = data.players || [];
-      
+      let data = snapshot.val(); let playersList = data.players || [];
       if (data.status === "waiting" && !playersList.includes(myUid)) {
         if (playersList.length >= 2) return alert("満室です。"); 
-        playersList.push(myUid);
-        await update(roomRef, { players: playersList });
+        playersList.push(myUid); await update(roomRef, { players: playersList });
       }
-      
       roomId = code;
       document.getElementById("login-screen").style.display = "none";
       document.getElementById("waiting-screen").style.display = "flex";
       document.getElementById("display-room-code").innerText = roomId;
       
       onValue(roomRef, (snap) => { if(snap.exists()) handleNetworkSync(snap.val()); });
+    }
+
+    function syncStrokes(targetIdx, rawStrokesStr) {
+      let rawList = JSON.parse(rawStrokesStr || "[]");
+      let currentPhysics = physicsStrokes[targetIdx];
+      
+      // 新規IDの追加
+      rawList.forEach(raw => {
+        if (!currentPhysics.find(ps => ps.id === raw.id)) {
+          currentPhysics.push({ id: raw.id, points: raw.points, offsetY: 0, vy: 0, isResting: false });
+        }
+      });
+      // 削除されたIDの除外
+      physicsStrokes[targetIdx] = currentPhysics.filter(ps => rawList.find(raw => raw.id === ps.id));
     }
 
     async function handleNetworkSync(data) {
@@ -196,23 +171,18 @@
         document.getElementById("waiting-screen").style.display = "none";
         document.getElementById("game-screen").style.display = "flex";
         
-        let partnerKey = 'p' + partnerIndex;
-        if(data.state[partnerKey] && !isTransitioning) {
-           playersData[partnerIndex].x = data.state[partnerKey].x;
-           playersData[partnerIndex].y = data.state[partnerKey].y;
+        if(!isTransitioning) {
+           let pKey = 'p' + partnerIndex;
+           if(data.state[pKey]) { playersData[partnerIndex].x = data.state[pKey].x; playersData[partnerIndex].y = data.state[pKey].y; }
+           partnerBtnPressed = data.state['btn' + partnerIndex] || false;
         }
 
-        lines[0] = JSON.parse(data.state.lines0 || "[]");
-        lines[1] = JSON.parse(data.state.lines1 || "[]");
+        // Firebaseからの生データをローカル物理エンジンに同期
+        syncStrokes(0, data.state.strokes0);
+        syncStrokes(1, data.state.strokes1);
 
-        // ステージ進行の同期
-        if (data.state.stageIndex !== currentStageIndex && !isTransitioning) {
-          loadStage(data.state.stageIndex);
-        }
-
-        // ゴール判定のチェック
+        if (data.state.stageIndex !== currentStageIndex && !isTransitioning) loadStage(data.state.stageIndex);
         checkBothGoals(data.state.p0, data.state.p1);
-
         if(!gameLoopStarted) startGameLoop();
       }
     }
@@ -221,53 +191,43 @@
       if(roomId && myIndex !== -1 && gameLoopStarted && !isTransitioning) {
          let updates = {};
          updates[`state/p${myIndex}`] = { x: Math.round(playersData[myIndex].x), y: Math.round(playersData[myIndex].y) };
+         updates[`state/btn${myIndex}`] = myBtnPressed;
          update(ref(db, 'ink_rooms/' + roomId), updates);
       }
-    }, 100);
+    }, 80);
 
     // ==========================================
-    // ゴール判定とステージ遷移
+    // ゴール・ステージ遷移
     // ==========================================
-    function checkBothGoals(p0Data, p1Data) {
-      if (isTransitioning || !p0Data || !p1Data) return;
+    function checkBothGoals(p0, p1) {
+      if (isTransitioning || !p0 || !p1) return;
       const stage = STAGE_DATA[currentStageIndex];
-      
-      const isGoal = (p, g) => {
-        let cx = p.x + 15; let cy = p.y + 15; 
-        return (cx > g.x && cx < g.x + g.w && cy > g.y && cy < g.y + g.h);
-      };
+      const isG = (p, g) => (p.x+15 > g.x && p.x+15 < g.x+g.w && p.y+15 > g.y && p.y+15 < g.y+g.h);
 
-      if (isGoal(p0Data, stage.p1.goal) && isGoal(p1Data, stage.p2.goal)) {
+      if (isG(p0, stage.p1.goal) && isG(p1, stage.p2.goal)) {
         isTransitioning = true;
         document.getElementById("message-overlay").style.display = "block";
-        
         setTimeout(() => {
           document.getElementById("message-overlay").style.display = "none";
-          let nextIndex = (currentStageIndex + 1) % STAGE_DATA.length;
+          let nextI = (currentStageIndex + 1) % STAGE_DATA.length;
           if (myIndex === 0) {
-            update(ref(db, 'ink_rooms/' + roomId), {
-              "state/stageIndex": nextIndex,
-              "state/lines0": "[]",
-              "state/lines1": "[]"
-            });
+            update(ref(db, 'ink_rooms/' + roomId), { "state/stageIndex": nextI, "state/strokes0": "[]", "state/strokes1": "[]" });
           }
           isTransitioning = false;
         }, 3000);
       }
     }
 
-    function loadStage(index) {
-      currentStageIndex = index;
-      lines = [[], []]; 
-      const stage = STAGE_DATA[currentStageIndex];
-      playersData[0].x = stage.p1.start.x; playersData[0].y = stage.p1.start.y;
-      playersData[1].x = stage.p2.start.x; playersData[1].y = stage.p2.start.y;
-      playersData[0].vx = playersData[0].vy = 0;
-      playersData[1].vx = playersData[1].vy = 0;
+    function loadStage(idx) {
+      currentStageIndex = idx; physicsStrokes = [[], []]; 
+      const st = STAGE_DATA[idx];
+      playersData[0].x = st.p1.start.x; playersData[0].y = st.p1.start.y;
+      playersData[1].x = st.p2.start.x; playersData[1].y = st.p2.start.y;
+      playersData[0].vx = playersData[0].vy = playersData[1].vx = playersData[1].vy = 0;
     }
 
     // ==========================================
-    // UI切り替え・ジョイスティック
+    // UI入力処理
     // ==========================================
     const btnToggle = document.getElementById("btn-toggle-mode");
     const modeIndicator = document.getElementById("mode-indicator");
@@ -276,176 +236,286 @@
     btnToggle.onclick = () => {
       isPartnerMode = !isPartnerMode;
       if(isPartnerMode) {
-        btnToggle.innerText = "VIEW SELF\n(自分に戻る)";
-        btnToggle.style.backgroundColor = "#00E5FF"; btnToggle.style.color = "#000";
-        modeIndicator.innerText = "PARTNER MODE (スワイプで支援！)"; modeIndicator.style.color = "#FF0055";
+        btnToggle.innerHTML = "👤 自分に戻る<br>(操作モード)"; btnToggle.style.backgroundColor = "#2196F3";
+        modeIndicator.innerHTML = "👀 相手を支援中 (スワイプで描画)"; modeIndicator.style.color = "#FF5722"; modeIndicator.style.borderColor = "#FF5722";
         joystickZone.style.opacity = "0.2"; joystickInput.x = 0; joystickInput.jump = false;
       } else {
-        btnToggle.innerText = "VIEW PARTNER\n(支援モードへ)";
-        btnToggle.style.backgroundColor = "#FF0055"; btnToggle.style.color = "#FFF";
-        modeIndicator.innerText = "SELF MODE (自分を操作)"; modeIndicator.style.color = "#00E5FF";
+        btnToggle.innerHTML = "👀 相手を見る<br>(支援モード)"; btnToggle.style.backgroundColor = "#FF5722";
+        modeIndicator.innerHTML = "👤 自分を操作中"; modeIndicator.style.color = "#2196F3"; modeIndicator.style.borderColor = "#2196F3";
         joystickZone.style.opacity = "1";
       }
     };
 
-    let joystickCenter = {x: 60, y: 60};
-    const knob = document.getElementById("joystick-knob");
-
-    joystickZone.addEventListener("touchstart", (e) => { if(!isPartnerMode) handleJoystickMove(e); }, {passive: false});
-    joystickZone.addEventListener("touchmove", (e) => { if(!isPartnerMode){ e.preventDefault(); handleJoystickMove(e); }}, {passive: false});
+    let jCenter = {x: 60, y: 60}; const knob = document.getElementById("joystick-knob");
+    joystickZone.addEventListener("touchstart", (e) => { if(!isPartnerMode) handleJoy(e); }, {passive: false});
+    joystickZone.addEventListener("touchmove", (e) => { if(!isPartnerMode){ e.preventDefault(); handleJoy(e); }}, {passive: false});
     joystickZone.addEventListener("touchend", () => { joystickInput.x = 0; joystickInput.jump = false; knob.style.transform = `translate(0px, 0px)`; });
-
-    function handleJoystickMove(e) {
-      const rect = joystickZone.getBoundingClientRect();
-      let dx = e.touches[0].clientX - rect.left - joystickCenter.x;
-      let dy = e.touches[0].clientY - rect.top - joystickCenter.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 35) { dx = (dx/dist)*35; dy = (dy/dist)*35; }
+    function handleJoy(e) {
+      const r = joystickZone.getBoundingClientRect();
+      let dx = e.touches[0].clientX - r.left - jCenter.x; let dy = e.touches[0].clientY - r.top - jCenter.y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d > 35) { dx = (dx/d)*35; dy = (dy/d)*35; }
       knob.style.transform = `translate(${dx}px, ${dy}px)`;
-      joystickInput.x = dx / 35;
-      joystickInput.jump = (dy < -15);
+      joystickInput.x = dx / 35; joystickInput.jump = (dy < -15);
     }
 
     // ==========================================
-    // 物理エンジン（斜面での滑り追加）
+    // 曲線描画 (ストローク)
+    // ==========================================
+    let isDrawing = false; let currentStrokePoints = [];
+    function getCanvasPos(e) {
+      const r = canvas.getBoundingClientRect(); const t = e.touches[0];
+      return { x: (t.clientX - r.left) * (LOGICAL_W / r.width), y: (t.clientY - r.top) * (LOGICAL_H / r.height) };
+    }
+
+    canvas.addEventListener("touchstart", (e) => {
+      if (!isPartnerMode || isTransitioning) return;
+      e.preventDefault(); isDrawing = true; currentStrokePoints = [getCanvasPos(e)];
+    }, {passive: false});
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (!isPartnerMode || !isDrawing) return;
+      e.preventDefault();
+      const pos = getCanvasPos(e); const last = currentStrokePoints[currentStrokePoints.length - 1];
+      if (Math.hypot(pos.x - last.x, pos.y - last.y) > 6) currentStrokePoints.push(pos);
+    }, {passive: false});
+
+    canvas.addEventListener("touchend", async () => {
+      if (!isPartnerMode || !isDrawing) return;
+      isDrawing = false;
+      if (currentStrokePoints.length > 1) {
+        // Firebaseに保存するのは {id, points} のみ。最大3本。
+        const roomRef = ref(db, 'ink_rooms/' + roomId);
+        const snap = await get(roomRef);
+        let rawList = JSON.parse(snap.val().state[`strokes${partnerIndex}`] || "[]");
+        rawList.push({ id: Date.now(), points: currentStrokePoints });
+        if(rawList.length > 3) rawList.shift();
+        
+        let updates = {}; updates[`state/strokes${partnerIndex}`] = JSON.stringify(rawList);
+        update(roomRef, updates);
+      }
+      currentStrokePoints = [];
+    });
+
+    // ==========================================
+    // 物理エンジン (線の落下・ギミック・プレイヤー)
     // ==========================================
     function updatePhysics() {
       if (myIndex === -1 || isTransitioning) return;
-      const p = playersData[myIndex];
+      
+      const vIdx = isPartnerMode ? partnerIndex : myIndex; // 画面に映っているステージ
+      const viewStage = vIdx === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
+      const myStage = myIndex === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
 
-      if (!isPartnerMode) {
-        p.vx = joystickInput.x * 5; 
-        if (joystickInput.jump && p.vy === 0) p.vy = -12;
-      } else {
-        p.vx = 0;
+      // --- [1] 描いた線の落下と風の物理演算 (現在の画面の線) ---
+      let viewActiveBlocks = [...viewStage.blocks];
+      let viewBtnState = vIdx === myIndex ? myBtnPressed : partnerBtnPressed;
+      let viewPartnerBtnState = vIdx === myIndex ? partnerBtnPressed : myBtnPressed;
+      
+      if (!viewPartnerBtnState) {
+        viewStage.doors.forEach(d => viewActiveBlocks.push(d));
       }
 
-      p.vy += 0.6; // 重力
-      let nextX = p.x + p.vx;
-      let nextY = p.y + p.vy;
-
-      // 自ステージのブロック判定
-      const myStage = myIndex === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
-      for (let block of myStage.blocks) {
-        if (nextX < block.x + block.w && nextX + p.w > block.x && nextY < block.y + block.h && nextY + p.h > block.y) {
-          if (p.vy > 0 && p.y + p.h <= block.y + 10) { 
-            nextY = block.y - p.h; p.vy = 0;
+      physicsStrokes[vIdx].forEach(stroke => {
+        let inWind = false;
+        // 風ギミック判定
+        for (let w of viewStage.winds) {
+          for (let pt of stroke.points) {
+            let cy = pt.y + stroke.offsetY;
+            if (pt.x > w.x && pt.x < w.x+w.w && cy > w.y && cy < w.y+w.h) {
+              inWind = true; stroke.vy += w.dy; stroke.isResting = false; break;
+            }
           }
+          if(inWind) break;
+        }
+
+        if (!inWind) stroke.vy += 0.6; // 重力
+
+        if (!stroke.isResting || inWind) {
+          let nextOffsetY = stroke.offsetY + stroke.vy;
+          let hit = false;
+          
+          if (stroke.vy > 0) { // 下に落ちている時
+            for (let pt of stroke.points) {
+              let nextY = pt.y + nextOffsetY; let currentY = pt.y + stroke.offsetY;
+              for (let b of viewActiveBlocks) {
+                if (pt.x >= b.x && pt.x <= b.x + b.w) {
+                  if (currentY <= b.y + 15 && nextY >= b.y) {
+                    nextOffsetY = b.y - pt.y; hit = true; break;
+                  }
+                }
+              }
+              if(hit) break;
+            }
+          } else if (stroke.vy < 0) { // 風で上に飛んでいる時
+            let minY = Math.min(...stroke.points.map(p => p.y + nextOffsetY));
+            if (minY < 0) { hit = true; nextOffsetY = -Math.min(...stroke.points.map(p => p.y)); } // 天井で止まる
+          }
+          
+          if (!hit && stroke.vy > 0) {
+            let maxY = Math.max(...stroke.points.map(p => p.y + nextOffsetY));
+            if (maxY > LOGICAL_H) { hit = true; nextOffsetY = LOGICAL_H - Math.max(...stroke.points.map(p => p.y)); } // 画面外
+          }
+
+          stroke.offsetY = nextOffsetY;
+          if (hit) { stroke.vy = 0; if (stroke.vy >= 0) stroke.isResting = true; }
+        }
+      });
+
+      // --- [2] プレイヤーの物理演算 ---
+      const p = playersData[myIndex];
+      if (!isPartnerMode) {
+        p.vx = joystickInput.x * 5; if (joystickInput.jump && p.vy === 0) p.vy = -12;
+      } else p.vx = 0;
+
+      let inWind = false;
+      for (let w of myStage.winds) {
+        if (p.x+15 > w.x && p.x+15 < w.x+w.w && p.y+15 > w.y && p.y+15 < w.y+w.h) {
+          p.vy += w.dy; p.vx += w.dx; inWind = true;
+        }
+      }
+      if (!inWind) p.vy += 0.6; 
+
+      let nextX = p.x + p.vx; let nextY = p.y + p.vy;
+
+      // ボタンギミック
+      myBtnPressed = false;
+      for (let btn of myStage.buttons) {
+        if (nextX+p.w > btn.x && nextX < btn.x+btn.w && nextY+p.h > btn.y && nextY < btn.y+btn.h) myBtnPressed = true;
+      }
+
+      // 地形ブロック
+      let myActiveBlocks = [...myStage.blocks];
+      if (!partnerBtnPressed) myStage.doors.forEach(d => myActiveBlocks.push(d));
+
+      for (let b of myActiveBlocks) {
+        if (nextX < b.x + b.w && nextX + p.w > b.x && nextY < b.y + b.h && nextY + p.h > b.y) {
+          if (p.vy > 0 && p.y + p.h <= b.y + 12) { nextY = b.y - p.h; p.vy = 0; } 
+          else if (p.vx > 0 && p.x + p.w <= b.x + 5) { nextX = b.x - p.w; } 
+          else if (p.vx < 0 && p.x >= b.x + b.w - 5) { nextX = b.x + b.w; } 
         }
       }
 
-      // 相手が描いた線との判定（斜め滑り機能）
-      let onLine = false;
-      let slopeGravityX = 0;
-      const partnerLines = lines[myIndex];
+      // [変更] 落下中の線との当たり判定 (実際のY座標を計算して判定)
+      let onLine = false; let slopeGx = 0;
+      const pStrokes = physicsStrokes[myIndex];
       
-      for (let line of partnerLines) {
-        if (nextX + p.w > line.x1 && nextX < line.x2) {
-          let t = (nextX + p.w/2 - line.x1) / (line.x2 - line.x1 + 0.001);
-          let lineY = line.y1 + t * (line.y2 - line.y1);
+      for (let stroke of pStrokes) {
+        for (let i = 0; i < stroke.points.length - 1; i++) {
+          let pt1 = stroke.points[i]; let pt2 = stroke.points[i+1];
+          let left = pt1.x < pt2.x ? {x: pt1.x, y: pt1.y + stroke.offsetY} : {x: pt2.x, y: pt2.y + stroke.offsetY};
+          let right = pt1.x < pt2.x ? {x: pt2.x, y: pt2.y + stroke.offsetY} : {x: pt1.x, y: pt1.y + stroke.offsetY};
           
-          if (p.vy >= 0 && p.y + p.h <= lineY + 15 && nextY + p.h >= lineY - 15) {
-            nextY = lineY - p.h;
-            p.vy = 0;
-            onLine = true;
+          if (nextX + p.w > left.x && nextX < right.x) {
+            let t = (nextX + p.w/2 - left.x) / (right.x - left.x + 0.001);
+            let lineY = left.y + t * (right.y - left.y);
             
-            let angle = Math.atan2(line.y2 - line.y1, line.x2 - line.x1);
-            if (Math.abs(angle) > 0.15) {
-              slopeGravityX = Math.sin(angle) * 3.0; 
+            if (p.vy >= 0 && p.y + p.h <= lineY + 15 && nextY + p.h >= lineY - 15) {
+              nextY = lineY - p.h; p.vy = 0; onLine = true;
+              // 線自体が下に落ちている場合はプレイヤーも一緒に下がる
+              if(stroke.vy > 0) nextY += stroke.vy; 
+              // 斜め滑り
+              let angle = Math.atan2(right.y - left.y, right.x - left.x);
+              if (Math.abs(angle) > 0.15) slopeGx = Math.sin(angle) * 3.5; 
             }
           }
         }
       }
+      if (onLine && slopeGx !== 0) nextX += slopeGx;
 
-      if (onLine && slopeGravityX !== 0) {
-         nextX += slopeGravityX;
-      }
-
-      // 落下時のリスポーン
-      if (nextY > LOGICAL_H) { 
-        nextX = myStage.start.x; nextY = myStage.start.y; p.vy = 0; 
-      }
-      if (nextX < 0) nextX = 0;
-      if (nextX > LOGICAL_W - p.w) nextX = LOGICAL_W - p.w;
-
+      if (nextY > LOGICAL_H) { nextX = myStage.start.x; nextY = myStage.start.y; p.vy = 0; }
+      if (nextX < 0) nextX = 0; if (nextX > LOGICAL_W - p.w) nextX = LOGICAL_W - p.w;
       p.x = nextX; p.y = nextY;
     }
 
     // ==========================================
     // 描画システム
     // ==========================================
-    let isDrawing = false; let currentLine = null;
-
-    canvas.addEventListener("touchstart", (e) => {
-      if (!isPartnerMode || isTransitioning) return;
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const t = e.touches[0];
-      let x = (t.clientX - rect.left) * (LOGICAL_W / rect.width);
-      let y = (t.clientY - rect.top) * (LOGICAL_H / rect.height);
-      isDrawing = true; currentLine = { x1: x, y1: y, x2: x, y2: y };
-    }, {passive: false});
-
-    canvas.addEventListener("touchmove", (e) => {
-      if (!isPartnerMode || !isDrawing) return;
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const t = e.touches[0];
-      currentLine.x2 = (t.clientX - rect.left) * (LOGICAL_W / rect.width);
-      currentLine.y2 = (t.clientY - rect.top) * (LOGICAL_H / rect.height);
-    }, {passive: false});
-
-    canvas.addEventListener("touchend", () => {
-      if (!isPartnerMode || !isDrawing) return;
-      isDrawing = false;
-      
-      if (currentLine.x1 > currentLine.x2) {
-         let tempX = currentLine.x1; let tempY = currentLine.y1;
-         currentLine.x1 = currentLine.x2; currentLine.y1 = currentLine.y2;
-         currentLine.x2 = tempX; currentLine.y2 = tempY;
-      }
-
-      let targetLines = lines[partnerIndex];
-      targetLines.push(currentLine);
-      if(targetLines.length > 5) targetLines.shift(); // 5本まで
-
-      let updates = {}; updates[`state/lines${partnerIndex}`] = JSON.stringify(targetLines);
-      update(ref(db, 'ink_rooms/' + roomId), updates);
-      currentLine = null;
-    });
-
-    let gameLoopStarted = false;
-    function render() {
-      ctx.fillStyle = "#1A1A1A"; ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-      const viewIndex = isPartnerMode ? partnerIndex : myIndex;
-      const stage = viewIndex === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
-
-      // ゴール描画
-      ctx.fillStyle = "rgba(255, 215, 0, 0.4)";
-      ctx.fillRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
-      ctx.strokeStyle = "#FFD700"; ctx.strokeRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
-      ctx.fillStyle = "#FFF"; ctx.fillText("GOAL", stage.goal.x + 10, stage.goal.y + 35);
-
-      // ブロック描画
-      ctx.fillStyle = "#666";
-      stage.blocks.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
-
-      // 線描画
-      ctx.lineWidth = 5; ctx.lineCap = "round";
-      const drawColor = isPartnerMode ? playersData[myIndex].color : playersData[partnerIndex].color;
-      lines[viewIndex].forEach(line => {
-        ctx.strokeStyle = drawColor; ctx.beginPath(); ctx.moveTo(line.x1, line.y1); ctx.lineTo(line.x2, line.y2); ctx.stroke();
-      });
-      if (isPartnerMode && currentLine) {
-        ctx.strokeStyle = drawColor; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(currentLine.x1, currentLine.y1); ctx.lineTo(currentLine.x2, currentLine.y2); ctx.stroke(); ctx.globalAlpha = 1.0;
-      }
-
-      // キャラ描画
-      const p = playersData[viewIndex];
-      ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, p.h);
+    function drawCharacter(ctx, p) {
+      ctx.save(); ctx.translate(p.x, p.y);
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(0, p.h); ctx.lineTo(p.w, p.h);
+      ctx.quadraticCurveTo(p.w, 0, p.w/2, 0); ctx.quadraticCurveTo(0, 0, 0, p.h); ctx.fill();
+      ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(10, 12, 4, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(20, 12, 4, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "black"; let eyeDx = p.vx > 0 ? 1 : p.vx < 0 ? -1 : 0;
+      ctx.beginPath(); ctx.arc(10 + eyeDx, 12, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(20 + eyeDx, 12, 2, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
     }
 
+    let windTimer = 0;
+    function render() {
+      ctx.fillStyle = "#87CEEB"; ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+      ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.beginPath(); ctx.arc(150, 80, 40, 0, Math.PI*2); ctx.arc(190, 80, 50, 0, Math.PI*2); ctx.arc(230, 80, 30, 0, Math.PI*2); ctx.fill();
+
+      const vIdx = isPartnerMode ? partnerIndex : myIndex;
+      if(vIdx === -1) return;
+      const stage = vIdx === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
+      const bState = vIdx === myIndex ? myBtnPressed : partnerBtnPressed;
+      const pbState = vIdx === myIndex ? partnerBtnPressed : myBtnPressed;
+
+      // ゴール
+      ctx.fillStyle = "rgba(255, 235, 59, 0.6)"; ctx.fillRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
+      ctx.strokeStyle = "#FF9800"; ctx.lineWidth=3; ctx.strokeRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
+      ctx.fillStyle = "#FF9800"; ctx.font = "bold 16px sans-serif"; ctx.fillText("GOAL", stage.goal.x + 8, stage.goal.y + 35);
+
+      // 風
+      windTimer += 0.05;
+      stage.winds.forEach(w => {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.2)"; ctx.fillRect(w.x, w.y, w.w, w.h);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"; ctx.lineWidth = 2; ctx.beginPath();
+        for(let i=0; i<3; i++) {
+          let oy = (w.h - ((windTimer * 30 + i * 50) % w.h));
+          ctx.moveTo(w.x + 20 + i*30, w.y + oy); ctx.lineTo(w.x + 20 + i*30, w.y + oy - 20);
+        }
+        ctx.stroke();
+      });
+
+      // ボタン
+      stage.buttons.forEach(btn => {
+        ctx.fillStyle = bState ? "#4CAF50" : "#F44336"; 
+        let by = bState ? btn.y + 5 : btn.y; let bh = bState ? btn.h - 5 : btn.h;
+        ctx.fillRect(btn.x, by, btn.w, bh);
+      });
+
+      // ブロック
+      stage.blocks.forEach(b => {
+        ctx.fillStyle = "#8B4513"; ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.fillStyle = "#4CAF50"; ctx.fillRect(b.x, b.y, b.w, Math.min(10, b.h)); 
+      });
+
+      // ドア
+      if (!pbState) {
+        stage.doors.forEach(d => {
+          ctx.fillStyle = "#607D8B"; ctx.fillRect(d.x, d.y, d.w, d.h);
+          ctx.strokeStyle = "#37474F"; ctx.strokeRect(d.x, d.y, d.w, d.h);
+        });
+      }
+
+      // 落下する線の描画 (offsetYを加算)
+      ctx.lineWidth = 8; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      const drawColor = isPartnerMode ? playersData[myIndex].color : playersData[partnerIndex].color;
+      
+      physicsStrokes[vIdx].forEach(stroke => {
+        if(stroke.points.length === 0) return;
+        ctx.strokeStyle = drawColor; ctx.beginPath(); 
+        ctx.moveTo(stroke.points[0].x, stroke.points[0].y + stroke.offsetY);
+        for(let i=1; i<stroke.points.length; i++) {
+           ctx.lineTo(stroke.points[i].x, stroke.points[i].y + stroke.offsetY);
+        }
+        ctx.stroke();
+      });
+
+      // 描画中の線（まだ落ちていない）
+      if (isPartnerMode && currentStrokePoints.length > 0) {
+        ctx.strokeStyle = drawColor; ctx.globalAlpha = 0.5; ctx.beginPath(); 
+        ctx.moveTo(currentStrokePoints[0].x, currentStrokePoints[0].y);
+        for(let i=1; i<currentStrokePoints.length; i++) ctx.lineTo(currentStrokePoints[i].x, currentStrokePoints[i].y);
+        ctx.stroke(); ctx.globalAlpha = 1.0;
+      }
+
+      drawCharacter(ctx, playersData[vIdx]);
+    }
+
+    let gameLoopStarted = false;
     function gameLoop() { updatePhysics(); render(); requestAnimationFrame(gameLoop); }
     function startGameLoop() { gameLoopStarted = true; loadStage(0); gameLoop(); }
   </script>
