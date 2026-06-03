@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>インク・コネクト</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; background-color: #222; color: #fff; margin: 0; padding: 0; overflow: hidden; touch-action: none; }
+    h1 { font-size: 24px; margin-top: 20px; color: #00E5FF; text-shadow: 0 0 10px rgba(0,229,255,0.5); }
+    button { padding: 12px 20px; font-size: 16px; margin: 5px; cursor: pointer; border-radius: 8px; border: none; background-color: #00E5FF; color: #000; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    button:active { background-color: #00B3CC; transform: translateY(2px); }
+    input { padding: 12px; font-size: 18px; width: 120px; text-align: center; border-radius: 8px; border: none; margin-bottom: 10px; }
+    
+    #screen-manager { width: 100vw; height: 100vh; position: relative; }
+    .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #222; }
+    
+    #game-container { position: relative; width: 100vw; height: 100vh; background-color: #111; display: flex; flex-direction: column; align-items: center; }
+    #game-canvas { background-color: #333; box-shadow: 0 0 20px rgba(0,0,0,0.8); max-width: 100%; max-height: 80vh; object-fit: contain; }
+
+    #hud { position: absolute; bottom: 0; width: 100%; height: 20vh; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; background: rgba(0,0,0,0.5); }
+    #joystick-zone { width: 120px; height: 120px; position: relative; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); }
+    #joystick-knob { width: 50px; height: 50px; position: absolute; top: 35px; left: 35px; border-radius: 50%; background: rgba(0, 229, 255, 0.7); pointer-events: none; }
+    
+    #btn-toggle-mode { background-color: #FF0055; color: white; height: 60px; width: 140px; border-radius: 30px; font-size: 14px; }
+    #mode-indicator { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 5px 15px; border-radius: 15px; font-weight: bold; color: #00E5FF; pointer-events: none;}
+    
+    /* ステージクリアなどのメッセージ表示用 */
+    #message-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; color: #FFD700; text-shadow: 0 0 20px #FF8C00; display: none; pointer-events: none; z-index: 10; }
+  </style>
+</head>
+<body>
+
+  <div id="screen-manager">
+    <div id="login-screen" class="screen">
+      <h1>インク・コネクト</h1>
+      <button id="btn-create">ルーム作成</button>
+      <br><br>
+      <input type="text" id="input-room" placeholder="コード" maxlength="4">
+      <button id="btn-join">ルーム入室</button>
+    </div>
+
+    <div id="waiting-screen" class="screen" style="display:none;">
+      <h1>ルームコード: <span id="display-room-code" style="color:#00E5FF; font-size: 32px;"></span></h1>
+      <p>パートナーを待っています...</p>
+    </div>
+
+    <div id="game-screen" class="screen" style="display:none; justify-content: flex-start;">
+      <div id="mode-indicator">SELF MODE (自分を操作)</div>
+      <div id="message-overlay">STAGE CLEAR!</div>
+      <canvas id="game-canvas" width="800" height="450"></canvas>
+      <div id="hud">
+        <div id="joystick-zone"><div id="joystick-knob"></div></div>
+        <button id="btn-toggle-mode">VIEW PARTNER<br>(支援モードへ)</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // ==========================================
+    // あなたのFirebaseプロジェクト設定
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAOKt8XnaAiyeI8BFeYfWSEkZ2Z5PEcYrw",
+      authDomain: "connect-25c1a.firebaseapp.com",
+      databaseURL: "https://connect-25c1a-default-rtdb.firebaseio.com",
+      projectId: "connect-25c1a",
+      storageBucket: "connect-25c1a.firebasestorage.app",
+      messagingSenderId: "695560009274",
+      appId: "1:695560009274:web:764e06740fc87da180a703"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ==========================================
+    // ゲーム共通変数
+    // ==========================================
+    const myUid = Math.random().toString(36).substring(2, 10);
+    let roomId = null;
+    let myIndex = -1; // 0=P1, 1=P2
+    let partnerIndex = -1;
+    let isPartnerMode = false;
+
+    const LOGICAL_W = 800;
+    const LOGICAL_H = 450;
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+
+    // ==========================================
+    // ステージデータ (サンプル3種類。ここを増やすとステージが増えます)
+    // ==========================================
+    const STAGE_DATA = [
+      // ----- ステージ 1: 基本のジャンプ -----
+      {
+        p1: {
+          start: { x: 50, y: 350 },
+          goal: { x: 700, y: 150, w: 60, h: 60 },
+          blocks: [ {x:0, y:400, w:200, h:50}, {x:600, y:210, w:200, h:50} ]
+        },
+        p2: {
+          start: { x: 50, y: 350 },
+          goal: { x: 700, y: 350, w: 60, h: 60 },
+          blocks: [ {x:0, y:400, w:150, h:50}, {x:650, y:410, w:150, h:40} ]
+        }
+      },
+      // ----- ステージ 2: 谷越え（相手の線が必要） -----
+      {
+        p1: {
+          start: { x: 50, y: 100 },
+          goal: { x: 700, y: 100, w: 60, h: 60 },
+          blocks: [ {x:0, y:150, w:200, h:300}, {x:600, y:150, w:200, h:300} ] 
+        },
+        p2: {
+          start: { x: 50, y: 350 },
+          goal: { x: 700, y: 50, w: 60, h: 60 },
+          blocks: [ {x:0, y:400, w:200, h:50}, {x:350, y:250, w:100, h:20}, {x:600, y:110, w:200, h:50} ]
+        }
+      },
+      // ----- ステージ 3: 滑り台（斜めの線を使わせる） -----
+      {
+        p1: {
+          start: { x: 50, y: 50 },
+          goal: { x: 700, y: 350, w: 60, h: 60 },
+          blocks: [ {x:0, y:100, w:150, h:20}, {x:650, y:410, w:150, h:40} ]
+        },
+        p2: {
+          start: { x: 50, y: 350 },
+          goal: { x: 700, y: 50, w: 60, h: 60 },
+          blocks: [ {x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:40} ]
+        }
+      }
+    ];
+
+    let currentStageIndex = 0;
+    let isTransitioning = false; // クリア演出中フラグ
+
+    let playersData = [
+      { x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: '#00E5FF' }, // P1
+      { x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: '#FF0055' }  // P2
+    ];
+    let lines = [[], []]; 
+    let joystickInput = { x: 0, jump: false };
+
+    // ==========================================
+    // ルームと通信のロジック
+    // ==========================================
+    document.getElementById("btn-create").onclick = async () => {
+      roomId = Math.random().toString(36).substring(2, 6).toUpperCase(); 
+      const roomRef = ref(db, 'ink_rooms/' + roomId);
+      await set(roomRef, {
+        status: "waiting", 
+        players: [myUid],
+        state: { p0: { x: 50, y: 50 }, p1: { x: 50, y: 50 }, lines0: "[]", lines1: "[]", stageIndex: 0 }
+      });
+      joinRoom(roomId);
+    };
+
+    document.getElementById("btn-join").onclick = () => {
+      const code = document.getElementById("input-room").value.trim().toUpperCase();
+      if(code) joinRoom(code);
+    };
+
+    async function joinRoom(code) {
+      const roomRef = ref(db, 'ink_rooms/' + code);
+      const snapshot = await get(roomRef);
+      if (!snapshot.exists()) return alert("ルームが見つかりません。"); 
+      
+      let data = snapshot.val();
+      let playersList = data.players || [];
+      
+      if (data.status === "waiting" && !playersList.includes(myUid)) {
+        if (playersList.length >= 2) return alert("満室です。"); 
+        playersList.push(myUid);
+        await update(roomRef, { players: playersList });
+      }
+      
+      roomId = code;
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("waiting-screen").style.display = "flex";
+      document.getElementById("display-room-code").innerText = roomId;
+      
+      onValue(roomRef, (snap) => { if(snap.exists()) handleNetworkSync(snap.val()); });
+    }
+
+    async function handleNetworkSync(data) {
+      myIndex = data.players.indexOf(myUid);
+      partnerIndex = myIndex === 0 ? 1 : 0;
+
+      if (data.status === "waiting" && data.players.length === 2) {
+        if (myIndex === 0) await update(ref(db, 'ink_rooms/' + roomId), { status: "playing" });
+      } 
+      else if (data.status === "playing") {
+        document.getElementById("waiting-screen").style.display = "none";
+        document.getElementById("game-screen").style.display = "flex";
+        
+        let partnerKey = 'p' + partnerIndex;
+        if(data.state[partnerKey] && !isTransitioning) {
+           playersData[partnerIndex].x = data.state[partnerKey].x;
+           playersData[partnerIndex].y = data.state[partnerKey].y;
+        }
+
+        lines[0] = JSON.parse(data.state.lines0 || "[]");
+        lines[1] = JSON.parse(data.state.lines1 || "[]");
+
+        // ステージ進行の同期
+        if (data.state.stageIndex !== currentStageIndex && !isTransitioning) {
+          loadStage(data.state.stageIndex);
+        }
+
+        // ゴール判定のチェック
+        checkBothGoals(data.state.p0, data.state.p1);
+
+        if(!gameLoopStarted) startGameLoop();
+      }
+    }
+
+    setInterval(() => {
+      if(roomId && myIndex !== -1 && gameLoopStarted && !isTransitioning) {
+         let updates = {};
+         updates[`state/p${myIndex}`] = { x: Math.round(playersData[myIndex].x), y: Math.round(playersData[myIndex].y) };
+         update(ref(db, 'ink_rooms/' + roomId), updates);
+      }
+    }, 100);
+
+    // ==========================================
+    // ゴール判定とステージ遷移
+    // ==========================================
+    function checkBothGoals(p0Data, p1Data) {
+      if (isTransitioning || !p0Data || !p1Data) return;
+      const stage = STAGE_DATA[currentStageIndex];
+      
+      const isGoal = (p, g) => {
+        let cx = p.x + 15; let cy = p.y + 15; 
+        return (cx > g.x && cx < g.x + g.w && cy > g.y && cy < g.y + g.h);
+      };
+
+      if (isGoal(p0Data, stage.p1.goal) && isGoal(p1Data, stage.p2.goal)) {
+        isTransitioning = true;
+        document.getElementById("message-overlay").style.display = "block";
+        
+        setTimeout(() => {
+          document.getElementById("message-overlay").style.display = "none";
+          let nextIndex = (currentStageIndex + 1) % STAGE_DATA.length;
+          if (myIndex === 0) {
+            update(ref(db, 'ink_rooms/' + roomId), {
+              "state/stageIndex": nextIndex,
+              "state/lines0": "[]",
+              "state/lines1": "[]"
+            });
+          }
+          isTransitioning = false;
+        }, 3000);
+      }
+    }
+
+    function loadStage(index) {
+      currentStageIndex = index;
+      lines = [[], []]; 
+      const stage = STAGE_DATA[currentStageIndex];
+      playersData[0].x = stage.p1.start.x; playersData[0].y = stage.p1.start.y;
+      playersData[1].x = stage.p2.start.x; playersData[1].y = stage.p2.start.y;
+      playersData[0].vx = playersData[0].vy = 0;
+      playersData[1].vx = playersData[1].vy = 0;
+    }
+
+    // ==========================================
+    // UI切り替え・ジョイスティック
+    // ==========================================
+    const btnToggle = document.getElementById("btn-toggle-mode");
+    const modeIndicator = document.getElementById("mode-indicator");
+    const joystickZone = document.getElementById("joystick-zone");
+
+    btnToggle.onclick = () => {
+      isPartnerMode = !isPartnerMode;
+      if(isPartnerMode) {
+        btnToggle.innerText = "VIEW SELF\n(自分に戻る)";
+        btnToggle.style.backgroundColor = "#00E5FF"; btnToggle.style.color = "#000";
+        modeIndicator.innerText = "PARTNER MODE (スワイプで支援！)"; modeIndicator.style.color = "#FF0055";
+        joystickZone.style.opacity = "0.2"; joystickInput.x = 0; joystickInput.jump = false;
+      } else {
+        btnToggle.innerText = "VIEW PARTNER\n(支援モードへ)";
+        btnToggle.style.backgroundColor = "#FF0055"; btnToggle.style.color = "#FFF";
+        modeIndicator.innerText = "SELF MODE (自分を操作)"; modeIndicator.style.color = "#00E5FF";
+        joystickZone.style.opacity = "1";
+      }
+    };
+
+    let joystickCenter = {x: 60, y: 60};
+    const knob = document.getElementById("joystick-knob");
+
+    joystickZone.addEventListener("touchstart", (e) => { if(!isPartnerMode) handleJoystickMove(e); }, {passive: false});
+    joystickZone.addEventListener("touchmove", (e) => { if(!isPartnerMode){ e.preventDefault(); handleJoystickMove(e); }}, {passive: false});
+    joystickZone.addEventListener("touchend", () => { joystickInput.x = 0; joystickInput.jump = false; knob.style.transform = `translate(0px, 0px)`; });
+
+    function handleJoystickMove(e) {
+      const rect = joystickZone.getBoundingClientRect();
+      let dx = e.touches[0].clientX - rect.left - joystickCenter.x;
+      let dy = e.touches[0].clientY - rect.top - joystickCenter.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 35) { dx = (dx/dist)*35; dy = (dy/dist)*35; }
+      knob.style.transform = `translate(${dx}px, ${dy}px)`;
+      joystickInput.x = dx / 35;
+      joystickInput.jump = (dy < -15);
+    }
+
+    // ==========================================
+    // 物理エンジン（斜面での滑り追加）
+    // ==========================================
+    function updatePhysics() {
+      if (myIndex === -1 || isTransitioning) return;
+      const p = playersData[myIndex];
+
+      if (!isPartnerMode) {
+        p.vx = joystickInput.x * 5; 
+        if (joystickInput.jump && p.vy === 0) p.vy = -12;
+      } else {
+        p.vx = 0;
+      }
+
+      p.vy += 0.6; // 重力
+      let nextX = p.x + p.vx;
+      let nextY = p.y + p.vy;
+
+      // 自ステージのブロック判定
+      const myStage = myIndex === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
+      for (let block of myStage.blocks) {
+        if (nextX < block.x + block.w && nextX + p.w > block.x && nextY < block.y + block.h && nextY + p.h > block.y) {
+          if (p.vy > 0 && p.y + p.h <= block.y + 10) { 
+            nextY = block.y - p.h; p.vy = 0;
+          }
+        }
+      }
+
+      // 相手が描いた線との判定（斜め滑り機能）
+      let onLine = false;
+      let slopeGravityX = 0;
+      const partnerLines = lines[myIndex];
+      
+      for (let line of partnerLines) {
+        if (nextX + p.w > line.x1 && nextX < line.x2) {
+          let t = (nextX + p.w/2 - line.x1) / (line.x2 - line.x1 + 0.001);
+          let lineY = line.y1 + t * (line.y2 - line.y1);
+          
+          if (p.vy >= 0 && p.y + p.h <= lineY + 15 && nextY + p.h >= lineY - 15) {
+            nextY = lineY - p.h;
+            p.vy = 0;
+            onLine = true;
+            
+            let angle = Math.atan2(line.y2 - line.y1, line.x2 - line.x1);
+            if (Math.abs(angle) > 0.15) {
+              slopeGravityX = Math.sin(angle) * 3.0; 
+            }
+          }
+        }
+      }
+
+      if (onLine && slopeGravityX !== 0) {
+         nextX += slopeGravityX;
+      }
+
+      // 落下時のリスポーン
+      if (nextY > LOGICAL_H) { 
+        nextX = myStage.start.x; nextY = myStage.start.y; p.vy = 0; 
+      }
+      if (nextX < 0) nextX = 0;
+      if (nextX > LOGICAL_W - p.w) nextX = LOGICAL_W - p.w;
+
+      p.x = nextX; p.y = nextY;
+    }
+
+    // ==========================================
+    // 描画システム
+    // ==========================================
+    let isDrawing = false; let currentLine = null;
+
+    canvas.addEventListener("touchstart", (e) => {
+      if (!isPartnerMode || isTransitioning) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      let x = (t.clientX - rect.left) * (LOGICAL_W / rect.width);
+      let y = (t.clientY - rect.top) * (LOGICAL_H / rect.height);
+      isDrawing = true; currentLine = { x1: x, y1: y, x2: x, y2: y };
+    }, {passive: false});
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (!isPartnerMode || !isDrawing) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      currentLine.x2 = (t.clientX - rect.left) * (LOGICAL_W / rect.width);
+      currentLine.y2 = (t.clientY - rect.top) * (LOGICAL_H / rect.height);
+    }, {passive: false});
+
+    canvas.addEventListener("touchend", () => {
+      if (!isPartnerMode || !isDrawing) return;
+      isDrawing = false;
+      
+      if (currentLine.x1 > currentLine.x2) {
+         let tempX = currentLine.x1; let tempY = currentLine.y1;
+         currentLine.x1 = currentLine.x2; currentLine.y1 = currentLine.y2;
+         currentLine.x2 = tempX; currentLine.y2 = tempY;
+      }
+
+      let targetLines = lines[partnerIndex];
+      targetLines.push(currentLine);
+      if(targetLines.length > 5) targetLines.shift(); // 5本まで
+
+      let updates = {}; updates[`state/lines${partnerIndex}`] = JSON.stringify(targetLines);
+      update(ref(db, 'ink_rooms/' + roomId), updates);
+      currentLine = null;
+    });
+
+    let gameLoopStarted = false;
+    function render() {
+      ctx.fillStyle = "#1A1A1A"; ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+      const viewIndex = isPartnerMode ? partnerIndex : myIndex;
+      const stage = viewIndex === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
+
+      // ゴール描画
+      ctx.fillStyle = "rgba(255, 215, 0, 0.4)";
+      ctx.fillRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
+      ctx.strokeStyle = "#FFD700"; ctx.strokeRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
+      ctx.fillStyle = "#FFF"; ctx.fillText("GOAL", stage.goal.x + 10, stage.goal.y + 35);
+
+      // ブロック描画
+      ctx.fillStyle = "#666";
+      stage.blocks.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+      // 線描画
+      ctx.lineWidth = 5; ctx.lineCap = "round";
+      const drawColor = isPartnerMode ? playersData[myIndex].color : playersData[partnerIndex].color;
+      lines[viewIndex].forEach(line => {
+        ctx.strokeStyle = drawColor; ctx.beginPath(); ctx.moveTo(line.x1, line.y1); ctx.lineTo(line.x2, line.y2); ctx.stroke();
+      });
+      if (isPartnerMode && currentLine) {
+        ctx.strokeStyle = drawColor; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(currentLine.x1, currentLine.y1); ctx.lineTo(currentLine.x2, currentLine.y2); ctx.stroke(); ctx.globalAlpha = 1.0;
+      }
+
+      // キャラ描画
+      const p = playersData[viewIndex];
+      ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, p.h);
+    }
+
+    function gameLoop() { updatePhysics(); render(); requestAnimationFrame(gameLoop); }
+    function startGameLoop() { gameLoopStarted = true; loadStage(0); gameLoop(); }
+  </script>
+</body>
+</html>
