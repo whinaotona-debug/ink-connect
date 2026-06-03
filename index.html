@@ -33,7 +33,7 @@
   <div id="screen-manager">
     <div id="login-screen" class="screen">
       <h1>インク・コネクト</h1>
-      <p style="color:#666; font-weight:bold;">描いた線が落ちる！協力パズル</p>
+      <p style="color:#666; font-weight:bold;">ギミック満載！協力パズル</p>
       <button id="btn-create">ルーム作成</button>
       <br>
       <input type="text" id="input-room" placeholder="コード" maxlength="4">
@@ -69,7 +69,6 @@
       messagingSenderId: "695560009274",
       appId: "1:695560009274:web:764e06740fc87da180a703"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
@@ -86,27 +85,44 @@
     const ctx = canvas.getContext("2d");
 
     // ==========================================
-    // ステージデータ
+    // ステージデータ (ギミック大幅追加)
+    // blocks:通常壁, buttons:スイッチ, doors:スイッチ連動壁, winds:風, bounce:トランポリン, moving:動く床, blink:点滅床
     // ==========================================
     const STAGE_DATA = [
-      { p1: { start: {x:50, y:350}, goal: {x:700, y:150, w:60, h:60}, blocks: [{x:0, y:400, w:200, h:50}, {x:600, y:210, w:200, h:50}], winds: [], buttons: [], doors: [] },
-        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:410, w:150, h:40}], winds: [], buttons: [], doors: [] } },
-      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:350, y:250, w:100, h:20}, {x:650, y:110, w:150, h:50}], winds: [], buttons: [], doors: [] },
-        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [], buttons: [], doors: [] } },
-      { p1: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:300, h:50}, {x:500, y:400, w:300, h:50}], winds: [], buttons: [{x: 200, y: 385, w: 40, h: 15, id: "btn1"}], doors: [] },
-        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:800, h:50}], winds: [], buttons: [], doors: [{x: 400, y: 200, w: 50, h: 200, id: "door1"}] } },
-      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [{x: 300, y: 150, w: 150, h: 300, dy: -1.2, dx: 0}], buttons: [], doors: [] },
-        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [{x: 300, y: 150, w: 150, h: 300, dy: -1.2, dx: 0}], buttons: [], doors: [] } },
-      { p1: { start: {x:50, y:50}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:100, w:150, h:20}, {x:650, y:410, w:150, h:40}], winds: [{x: 400, y: 200, w: 100, h: 250, dy: -0.8, dx: 0}], buttons: [], doors: [{x: 650, y: 250, w: 20, h: 160, id: "door2"}] },
-        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:40}], winds: [], buttons: [{x: 100, y: 385, w: 40, h: 15, id: "btn2"}], doors: [] } }
+      // 1. 基本 (線を描いて渡る)
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:150, w:60, h:60}, blocks: [{x:0, y:400, w:200, h:50}, {x:600, y:210, w:200, h:50}], winds:[], buttons:[], doors:[], bounce:[], moving:[], blink:[] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:410, w:150, h:40}], winds:[], buttons:[], doors:[], bounce:[], moving:[], blink:[] } },
+      
+      // 2. 新ギミック: トランポリン
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:200, h:50}, {x:600, y:110, w:200, h:50}], bounce: [{x: 350, y: 400, w: 100, h: 20}], winds:[], buttons:[], doors:[], moving:[], blink:[] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:200, h:50}, {x:600, y:410, w:200, h:40}], bounce: [], winds:[], buttons:[], doors:[], moving:[], blink:[] } },
+      
+      // 3. ボタンとドア (線を重りにしてボタンを押す)
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:300, h:50}, {x:500, y:400, w:300, h:50}], buttons: [{x: 200, y: 385, w: 40, h: 15, id: "btn1"}], doors: [], winds:[], bounce:[], moving:[], blink:[] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:350, w:60, h:60}, blocks: [{x:0, y:400, w:800, h:50}], doors: [{x: 400, y: 200, w: 50, h: 200, id: "door1"}], winds:[], buttons:[], bounce:[], moving:[], blink:[] } },
+      
+      // 4. 新ギミック: 動く床
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:150, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:600, y:210, w:200, h:50}], moving: [{x: 200, y: 300, w: 100, h: 20, speedX: 150, speedY: 0, range: 200}], winds:[], buttons:[], doors:[], bounce:[], blink:[] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:150, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:600, y:210, w:200, h:50}], moving: [{x: 350, y: 400, w: 100, h: 20, speedX: 0, speedY: 200, range: 150}], winds:[], buttons:[], doors:[], bounce:[], blink:[] } },
+
+      // 5. 新ギミック: 点滅ブロック
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:600, y:110, w:200, h:50}], blink: [{x: 250, y: 300, w: 80, h: 20, offset: 0}, {x: 400, y: 200, w: 80, h: 20, offset: 1500}], winds:[], buttons:[], doors:[], bounce:[], moving:[] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:600, y:110, w:200, h:50}], blink: [{x: 300, y: 250, w: 150, h: 20, offset: 0}], winds:[], buttons:[], doors:[], bounce:[], moving:[] } },
+
+      // 6. 風（上昇気流）
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [{x: 300, y: 150, w: 150, h: 300, dy: -1.2, dx: 0}], buttons:[], doors:[], bounce:[], moving:[], blink:[] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:50}], winds: [{x: 300, y: 150, w: 150, h: 300, dy: -1.2, dx: 0}], buttons:[], doors:[], bounce:[], moving:[], blink:[] } },
+      
+      // 7. 総決算 (全ギミックミックス)
+      { p1: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:40}], winds: [{x: 400, y: 200, w: 100, h: 250, dy: -0.8, dx: 0}], buttons: [], doors: [{x: 650, y: 150, w: 20, h: 260, id: "doorX"}], bounce: [{x:200, y:400, w:50, h:20}], moving: [], blink: [] },
+        p2: { start: {x:50, y:350}, goal: {x:700, y:50, w:60, h:60}, blocks: [{x:0, y:400, w:150, h:50}, {x:650, y:110, w:150, h:40}], winds: [], buttons: [{x: 380, y: 85, w: 40, h: 15, id: "btnX"}], doors: [], bounce: [], moving: [{x: 200, y: 250, w: 100, h: 20, speedX: 100, speedY: 0, range: 100}], blink: [{x: 500, y: 150, w: 80, h: 20, offset:0}] } }
     ];
 
     let currentStageIndex = 0; let isTransitioning = false;
     const P1_COLOR = "#03A9F4"; const P2_COLOR = "#E91E63";
     let playersData = [{ x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: P1_COLOR }, { x: 50, y: 50, vx: 0, vy: 0, w: 30, h: 30, color: P2_COLOR }];
     
-    // 【変更】ローカルでの物理演算用ストローク配列
-    // 構造: { id: 数値, points: [{x,y}...], offsetY: 0, vy: 0, isResting: false }
+    // ストローク（線）データ
     let physicsStrokes = [[], []]; 
     let joystickInput = { x: 0, jump: false };
 
@@ -149,14 +165,11 @@
     function syncStrokes(targetIdx, rawStrokesStr) {
       let rawList = JSON.parse(rawStrokesStr || "[]");
       let currentPhysics = physicsStrokes[targetIdx];
-      
-      // 新規IDの追加
       rawList.forEach(raw => {
         if (!currentPhysics.find(ps => ps.id === raw.id)) {
           currentPhysics.push({ id: raw.id, points: raw.points, offsetY: 0, vy: 0, isResting: false });
         }
       });
-      // 削除されたIDの除外
       physicsStrokes[targetIdx] = currentPhysics.filter(ps => rawList.find(raw => raw.id === ps.id));
     }
 
@@ -177,7 +190,6 @@
            partnerBtnPressed = data.state['btn' + partnerIndex] || false;
         }
 
-        // Firebaseからの生データをローカル物理エンジンに同期
         syncStrokes(0, data.state.strokes0);
         syncStrokes(1, data.state.strokes1);
 
@@ -260,7 +272,7 @@
     }
 
     // ==========================================
-    // 曲線描画 (ストローク)
+    // 描画 (ストローク)
     // ==========================================
     let isDrawing = false; let currentStrokePoints = [];
     function getCanvasPos(e) {
@@ -284,41 +296,48 @@
       if (!isPartnerMode || !isDrawing) return;
       isDrawing = false;
       if (currentStrokePoints.length > 1) {
-        // Firebaseに保存するのは {id, points} のみ。最大3本。
         const roomRef = ref(db, 'ink_rooms/' + roomId);
         const snap = await get(roomRef);
         let rawList = JSON.parse(snap.val().state[`strokes${partnerIndex}`] || "[]");
         rawList.push({ id: Date.now(), points: currentStrokePoints });
         if(rawList.length > 3) rawList.shift();
-        
-        let updates = {}; updates[`state/strokes${partnerIndex}`] = JSON.stringify(rawList);
-        update(roomRef, updates);
+        update(roomRef, { [`state/strokes${partnerIndex}`]: JSON.stringify(rawList) });
       }
       currentStrokePoints = [];
     });
 
     // ==========================================
-    // 物理エンジン (線の落下・ギミック・プレイヤー)
+    // 物理エンジン (ギミック対応版)
     // ==========================================
     function updatePhysics() {
       if (myIndex === -1 || isTransitioning) return;
       
-      const vIdx = isPartnerMode ? partnerIndex : myIndex; // 画面に映っているステージ
+      const vIdx = isPartnerMode ? partnerIndex : myIndex;
       const viewStage = vIdx === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
       const myStage = myIndex === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
+      const time = Date.now();
 
-      // --- [1] 描いた線の落下と風の物理演算 (現在の画面の線) ---
-      let viewActiveBlocks = [...viewStage.blocks];
-      let viewBtnState = vIdx === myIndex ? myBtnPressed : partnerBtnPressed;
-      let viewPartnerBtnState = vIdx === myIndex ? partnerBtnPressed : myBtnPressed;
+      // [1] 動く床の現在座標を計算
+      const getMovingBlock = (mb) => {
+        let mx = mb.x + Math.sin(time / 1000) * (mb.speedX || 0) * (mb.range/100 || 1);
+        let my = mb.y + Math.cos(time / 1000) * (mb.speedY || 0) * (mb.range/100 || 1);
+        return { x: mx, y: my, w: mb.w, h: mb.h, dx: mx - (mb.lastX || mx), dy: my - (mb.lastY || my) };
+      };
       
-      if (!viewPartnerBtnState) {
-        viewStage.doors.forEach(d => viewActiveBlocks.push(d));
-      }
+      myStage.moving.forEach(mb => {
+        let m = getMovingBlock(mb); mb.lastX = m.x; mb.lastY = m.y; mb.current = m;
+      });
+      viewStage.moving.forEach(mb => {
+        let m = getMovingBlock(mb); mb.lastX = m.x; mb.lastY = m.y; mb.current = m;
+      });
+
+      // [2] 線の落下演算
+      let viewActiveBlocks = [...viewStage.blocks, ...viewStage.bounce, ...(viewStage.moving.map(mb=>mb.current))];
+      let pbState = vIdx === myIndex ? partnerBtnPressed : myBtnPressed;
+      if (!pbState) viewStage.doors.forEach(d => viewActiveBlocks.push(d));
 
       physicsStrokes[vIdx].forEach(stroke => {
         let inWind = false;
-        // 風ギミック判定
         for (let w of viewStage.winds) {
           for (let pt of stroke.points) {
             let cy = pt.y + stroke.offsetY;
@@ -330,39 +349,26 @@
         }
 
         if (!inWind) stroke.vy += 0.6; // 重力
-
         if (!stroke.isResting || inWind) {
           let nextOffsetY = stroke.offsetY + stroke.vy;
           let hit = false;
-          
-          if (stroke.vy > 0) { // 下に落ちている時
+          if (stroke.vy > 0) {
             for (let pt of stroke.points) {
               let nextY = pt.y + nextOffsetY; let currentY = pt.y + stroke.offsetY;
               for (let b of viewActiveBlocks) {
-                if (pt.x >= b.x && pt.x <= b.x + b.w) {
-                  if (currentY <= b.y + 15 && nextY >= b.y) {
-                    nextOffsetY = b.y - pt.y; hit = true; break;
-                  }
+                if (pt.x >= b.x && pt.x <= b.x + b.w && currentY <= b.y + 15 && nextY >= b.y) {
+                  nextOffsetY = b.y - pt.y; hit = true; break;
                 }
               }
               if(hit) break;
             }
-          } else if (stroke.vy < 0) { // 風で上に飛んでいる時
-            let minY = Math.min(...stroke.points.map(p => p.y + nextOffsetY));
-            if (minY < 0) { hit = true; nextOffsetY = -Math.min(...stroke.points.map(p => p.y)); } // 天井で止まる
           }
-          
-          if (!hit && stroke.vy > 0) {
-            let maxY = Math.max(...stroke.points.map(p => p.y + nextOffsetY));
-            if (maxY > LOGICAL_H) { hit = true; nextOffsetY = LOGICAL_H - Math.max(...stroke.points.map(p => p.y)); } // 画面外
-          }
-
           stroke.offsetY = nextOffsetY;
-          if (hit) { stroke.vy = 0; if (stroke.vy >= 0) stroke.isResting = true; }
+          if (hit) { stroke.vy = 0; stroke.isResting = true; }
         }
       });
 
-      // --- [2] プレイヤーの物理演算 ---
+      // [3] プレイヤーの物理演算
       const p = playersData[myIndex];
       if (!isPartnerMode) {
         p.vx = joystickInput.x * 5; if (joystickInput.jump && p.vy === 0) p.vy = -12;
@@ -370,37 +376,62 @@
 
       let inWind = false;
       for (let w of myStage.winds) {
-        if (p.x+15 > w.x && p.x+15 < w.x+w.w && p.y+15 > w.y && p.y+15 < w.y+w.h) {
-          p.vy += w.dy; p.vx += w.dx; inWind = true;
-        }
+        if (p.x+15 > w.x && p.x+15 < w.x+w.w && p.y+15 > w.y && p.y+15 < w.y+w.h) { p.vy += w.dy; p.vx += w.dx; inWind = true; }
       }
       if (!inWind) p.vy += 0.6; 
 
       let nextX = p.x + p.vx; let nextY = p.y + p.vy;
 
-      // ボタンギミック
+      // ボタン判定
       myBtnPressed = false;
       for (let btn of myStage.buttons) {
         if (nextX+p.w > btn.x && nextX < btn.x+btn.w && nextY+p.h > btn.y && nextY < btn.y+btn.h) myBtnPressed = true;
       }
+      // 線によるボタン押し判定
+      physicsStrokes[myIndex].forEach(stroke => {
+        stroke.points.forEach(pt => {
+           let cy = pt.y + stroke.offsetY;
+           for (let btn of myStage.buttons) {
+             if (pt.x > btn.x && pt.x < btn.x+btn.w && cy > btn.y && cy < btn.y+btn.h) myBtnPressed = true;
+           }
+        });
+      });
 
-      // 地形ブロック
+      // プレイヤーとブロックの当たり判定
       let myActiveBlocks = [...myStage.blocks];
       if (!partnerBtnPressed) myStage.doors.forEach(d => myActiveBlocks.push(d));
+      myStage.moving.forEach(mb => myActiveBlocks.push(mb.current));
+      
+      // 点滅ブロック (3000ms周期)
+      myStage.blink.forEach(bk => {
+        if (Math.floor((time + bk.offset) / 1500) % 2 === 0) myActiveBlocks.push(bk);
+      });
 
+      let onMoving = null;
       for (let b of myActiveBlocks) {
         if (nextX < b.x + b.w && nextX + p.w > b.x && nextY < b.y + b.h && nextY + p.h > b.y) {
-          if (p.vy > 0 && p.y + p.h <= b.y + 12) { nextY = b.y - p.h; p.vy = 0; } 
-          else if (p.vx > 0 && p.x + p.w <= b.x + 5) { nextX = b.x - p.w; } 
-          else if (p.vx < 0 && p.x >= b.x + b.w - 5) { nextX = b.x + b.w; } 
+          if (p.vy > 0 && p.y + p.h <= b.y + 12) { 
+            nextY = b.y - p.h; p.vy = 0; 
+            if(b.dx !== undefined) onMoving = b; // 動く床に乗った
+          } 
+          else if (p.vx > 0 && p.x + p.w <= b.x + 5) nextX = b.x - p.w;
+          else if (p.vx < 0 && p.x >= b.x + b.w - 5) nextX = b.x + b.w;
         }
       }
 
-      // [変更] 落下中の線との当たり判定 (実際のY座標を計算して判定)
+      // 動く床に追従
+      if (onMoving) { nextX += onMoving.dx; nextY += onMoving.dy; }
+
+      // トランポリン判定
+      for (let b of myStage.bounce) {
+        if (nextX < b.x + b.w && nextX + p.w > b.x && nextY < b.y + b.h && nextY + p.h > b.y) {
+          if (p.vy > 0 && p.y + p.h <= b.y + 15) { nextY = b.y - p.h; p.vy = -18; } // 大ジャンプ
+        }
+      }
+
+      // 線に乗る・滑る
       let onLine = false; let slopeGx = 0;
-      const pStrokes = physicsStrokes[myIndex];
-      
-      for (let stroke of pStrokes) {
+      physicsStrokes[myIndex].forEach(stroke => {
         for (let i = 0; i < stroke.points.length - 1; i++) {
           let pt1 = stroke.points[i]; let pt2 = stroke.points[i+1];
           let left = pt1.x < pt2.x ? {x: pt1.x, y: pt1.y + stroke.offsetY} : {x: pt2.x, y: pt2.y + stroke.offsetY};
@@ -410,17 +441,16 @@
             let t = (nextX + p.w/2 - left.x) / (right.x - left.x + 0.001);
             let lineY = left.y + t * (right.y - left.y);
             
+            // 線の判定（線は死なない。足場として乗るだけ）
             if (p.vy >= 0 && p.y + p.h <= lineY + 15 && nextY + p.h >= lineY - 15) {
               nextY = lineY - p.h; p.vy = 0; onLine = true;
-              // 線自体が下に落ちている場合はプレイヤーも一緒に下がる
               if(stroke.vy > 0) nextY += stroke.vy; 
-              // 斜め滑り
               let angle = Math.atan2(right.y - left.y, right.x - left.x);
               if (Math.abs(angle) > 0.15) slopeGx = Math.sin(angle) * 3.5; 
             }
           }
         }
-      }
+      });
       if (onLine && slopeGx !== 0) nextX += slopeGx;
 
       if (nextY > LOGICAL_H) { nextX = myStage.start.x; nextY = myStage.start.y; p.vy = 0; }
@@ -429,7 +459,7 @@
     }
 
     // ==========================================
-    // 描画システム
+    // 描画
     // ==========================================
     function drawCharacter(ctx, p) {
       ctx.save(); ctx.translate(p.x, p.y);
@@ -451,6 +481,7 @@
       const stage = vIdx === 0 ? STAGE_DATA[currentStageIndex].p1 : STAGE_DATA[currentStageIndex].p2;
       const bState = vIdx === myIndex ? myBtnPressed : partnerBtnPressed;
       const pbState = vIdx === myIndex ? partnerBtnPressed : myBtnPressed;
+      const time = Date.now();
 
       // ゴール
       ctx.fillStyle = "rgba(255, 235, 59, 0.6)"; ctx.fillRect(stage.goal.x, stage.goal.y, stage.goal.w, stage.goal.h);
@@ -476,38 +507,44 @@
         ctx.fillRect(btn.x, by, btn.w, bh);
       });
 
-      // ブロック
-      stage.blocks.forEach(b => {
-        ctx.fillStyle = "#8B4513"; ctx.fillRect(b.x, b.y, b.w, b.h);
-        ctx.fillStyle = "#4CAF50"; ctx.fillRect(b.x, b.y, b.w, Math.min(10, b.h)); 
-      });
+      // 通常ブロック
+      stage.blocks.forEach(b => { ctx.fillStyle = "#8B4513"; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.fillStyle = "#4CAF50"; ctx.fillRect(b.x, b.y, b.w, Math.min(10, b.h)); });
 
       // ドア
-      if (!pbState) {
-        stage.doors.forEach(d => {
-          ctx.fillStyle = "#607D8B"; ctx.fillRect(d.x, d.y, d.w, d.h);
-          ctx.strokeStyle = "#37474F"; ctx.strokeRect(d.x, d.y, d.w, d.h);
-        });
-      }
+      if (!pbState) { stage.doors.forEach(d => { ctx.fillStyle = "#607D8B"; ctx.fillRect(d.x, d.y, d.w, d.h); ctx.strokeStyle = "#37474F"; ctx.strokeRect(d.x, d.y, d.w, d.h); }); }
 
-      // 落下する線の描画 (offsetYを加算)
+      // トランポリン
+      stage.bounce.forEach(b => {
+        ctx.fillStyle = "#E91E63"; ctx.fillRect(b.x, b.y, b.w, b.h);
+        ctx.fillStyle = "#F8BBD0"; ctx.fillRect(b.x, b.y, b.w, 5);
+      });
+
+      // 動く床
+      stage.moving.forEach(mb => {
+        let m = mb.current; if(!m) return;
+        ctx.fillStyle = "#FFC107"; ctx.fillRect(m.x, m.y, m.w, m.h);
+        ctx.fillStyle = "#000"; for(let i=0; i<m.w; i+=20) ctx.fillRect(m.x+i, m.y, 10, m.h); // トラ柄
+      });
+
+      // 点滅床
+      stage.blink.forEach(bk => {
+        let active = Math.floor((time + bk.offset) / 1500) % 2 === 0;
+        if (active) { ctx.fillStyle = "rgba(33, 150, 243, 0.8)"; ctx.fillRect(bk.x, bk.y, bk.w, bk.h); } 
+        else { ctx.strokeStyle = "rgba(33, 150, 243, 0.3)"; ctx.strokeRect(bk.x, bk.y, bk.w, bk.h); }
+      });
+
+      // 線
       ctx.lineWidth = 8; ctx.lineCap = "round"; ctx.lineJoin = "round";
       const drawColor = isPartnerMode ? playersData[myIndex].color : playersData[partnerIndex].color;
-      
       physicsStrokes[vIdx].forEach(stroke => {
         if(stroke.points.length === 0) return;
-        ctx.strokeStyle = drawColor; ctx.beginPath(); 
-        ctx.moveTo(stroke.points[0].x, stroke.points[0].y + stroke.offsetY);
-        for(let i=1; i<stroke.points.length; i++) {
-           ctx.lineTo(stroke.points[i].x, stroke.points[i].y + stroke.offsetY);
-        }
+        ctx.strokeStyle = drawColor; ctx.beginPath(); ctx.moveTo(stroke.points[0].x, stroke.points[0].y + stroke.offsetY);
+        for(let i=1; i<stroke.points.length; i++) ctx.lineTo(stroke.points[i].x, stroke.points[i].y + stroke.offsetY);
         ctx.stroke();
       });
 
-      // 描画中の線（まだ落ちていない）
       if (isPartnerMode && currentStrokePoints.length > 0) {
-        ctx.strokeStyle = drawColor; ctx.globalAlpha = 0.5; ctx.beginPath(); 
-        ctx.moveTo(currentStrokePoints[0].x, currentStrokePoints[0].y);
+        ctx.strokeStyle = drawColor; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(currentStrokePoints[0].x, currentStrokePoints[0].y);
         for(let i=1; i<currentStrokePoints.length; i++) ctx.lineTo(currentStrokePoints[i].x, currentStrokePoints[i].y);
         ctx.stroke(); ctx.globalAlpha = 1.0;
       }
